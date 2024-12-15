@@ -16,6 +16,7 @@ pub mod components {
     pub mod button;
     pub mod event;
     pub mod number;
+    pub mod select;
     pub mod sensor;
     pub mod text;
 }
