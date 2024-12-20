@@ -301,19 +301,19 @@ pub enum NumberMode {
     Slider,
 }
 
-impl<'a> crate::discoverable::ObjectId for Number<'a> {
+impl<'a> crate::component::ObjectId for Number<'a> {
     fn object_id(&self) -> &str {
         self.object_id.as_ref().unwrap()
     }
 }
 
-impl<'a> crate::discoverable::Component for Number<'a> {
+impl<'a> crate::component::ComponentTrait for Number<'a> {
     fn component(&self) -> crate::component::Component {
         crate::component::Component::Number
     }
 }
 
-impl<'a> crate::discoverable::NodeId for Number<'a> {
+impl<'a> crate::component::NodeId for Number<'a> {
     fn node_id(&self) -> Option<&str> {
         self.device.and_then(|device| device.node_id.as_deref())
     }

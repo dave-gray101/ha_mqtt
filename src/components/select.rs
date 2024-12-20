@@ -188,19 +188,19 @@ impl<'a> Select<'a> {
     }
 }
 
-impl<'a> crate::discoverable::ObjectId for Select<'a> {
+impl<'a> crate::component::ObjectId for Select<'a> {
     fn object_id(&self) -> &str {
         self.object_id.as_ref().unwrap()
     }
 }
 
-impl<'a> crate::discoverable::Component for Select<'a> {
+impl<'a> crate::component::ComponentTrait for Select<'a> {
     fn component(&self) -> crate::component::Component {
         crate::component::Component::Select
     }
 }
 
-impl<'a> crate::discoverable::NodeId for Select<'a> {
+impl<'a> crate::component::NodeId for Select<'a> {
     fn node_id(&self) -> Option<&str> {
         self.device.and_then(|device| device.node_id.as_deref())
     }

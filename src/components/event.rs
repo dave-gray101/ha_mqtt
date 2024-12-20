@@ -173,19 +173,19 @@ impl<'a> Event<'a> {
     }
 }
 
-impl<'a> crate::discoverable::ObjectId for Event<'a> {
+impl<'a> crate::component::ObjectId for Event<'a> {
     fn object_id(&self) -> &str {
         self.object_id.as_ref().unwrap()
     }
 }
 
-impl<'a> crate::discoverable::Component for Event<'a> {
+impl<'a> crate::component::ComponentTrait for Event<'a> {
     fn component(&self) -> crate::component::Component {
         crate::component::Component::Event
     }
 }
 
-impl<'a> crate::discoverable::NodeId for Event<'a> {
+impl<'a> crate::component::NodeId for Event<'a> {
     fn node_id(&self) -> Option<&str> {
         self.device.and_then(|device| device.node_id.as_deref())
     }

@@ -1,5 +1,30 @@
 use serde::{Deserialize, Serialize};
 
+#[allow(clippy::declare_interior_mutable_const)]
+const PREFIX: std::cell::OnceCell<&str> = std::cell::OnceCell::new();
+
+pub trait ObjectId {
+    fn object_id(&self) -> &str;
+}
+
+pub trait ComponentTrait {
+    fn component(&self) -> crate::component::Component;
+
+    fn prefix(&self) -> &'static str;
+}
+
+impl dyn ComponentTrait {
+    fn prefix(&self) -> &'static str {
+        #[allow(clippy::borrow_interior_mutable_const)]
+        PREFIX.get_or_init(|| option_env!("HA_MQTT_PREFIX").unwrap_or("homeassistant"))
+    }
+}
+
+pub trait NodeId {
+    fn node_id(&self) -> Option<&str>;
+}
+
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Component {
@@ -50,7 +75,9 @@ fn to_snake_case(input: &str) -> String {
         }
     }
     result
+    
 }
+
 
 #[cfg(test)]
 mod tests {

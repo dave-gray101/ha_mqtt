@@ -1,77 +1,71 @@
-use serde::Serialize;
+use serde::{ser::SerializeStruct, Serialize};
+use crate::component::{ComponentTrait, ObjectId, NodeId};
 
-#[allow(clippy::declare_interior_mutable_const)]
-const PREFIX: std::cell::OnceCell<&str> = std::cell::OnceCell::new();
-
-pub trait ObjectId {
-    fn object_id(&self) -> &str;
+#[derive(serde::Serialize)]
+pub struct Discoverable<T: serde::Serialize> {
+    #[serde(flatten)]
+    inner: T,
 }
 
-pub trait Component {
-    fn component(&self) -> crate::component::Component;
-}
+impl<T> Discoverable<T> where T: ComponentTrait + ObjectId + NodeId + Serialize
+{
 
-pub trait NodeId {
-    fn node_id(&self) -> Option<&str>;
-}
-
-pub trait Discoverable: serde::Serialize {
-    fn prefix(&self) -> &'static str {
-        #[allow(clippy::borrow_interior_mutable_const)]
-        PREFIX.get_or_init(|| option_env!("HA_MQTT_PREFIX").unwrap_or("homeassistant"))
+    fn new(inner: T) -> Self {
+        Self {
+            inner,
+        }
     }
 
-    fn config_topic(&self) -> String;
-}
+    fn discoverable_name(&self) -> String {
+        format!("Discoverable<{}>", &self.inner.component().to_string())
+    }
 
-pub trait State {
-    fn state_topic(&self) -> String;
-}
+    
 
-impl<T> Discoverable for T
-where
-    T: Component + ObjectId + NodeId + Serialize,
-{
     fn config_topic(&self) -> String {
-        if let Some(node_id) = self.node_id() {
+        if let Some(node_id) = self.inner.node_id() {
             format!(
                 "{}/{}/{}/{}/config",
-                self.prefix().to_lowercase(),
-                self.component(),
+                self.inner.prefix().to_lowercase(),
+                self.inner.component(),
                 node_id.to_lowercase(),
-                self.object_id().to_lowercase()
+                self.inner.object_id().to_lowercase()
             )
         } else {
             format!(
                 "{}/{}/{}/config",
-                self.prefix().to_lowercase(),
-                self.component(),
-                self.object_id().to_lowercase()
+                self.inner.prefix().to_lowercase(),
+                self.inner.component(),
+                self.inner.object_id().to_lowercase()
             )
         }
     }
+
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: serde::Serializer {
+       
+        let mut state = serializer.serialize_struct(std::any::type_name_of_val(&self.inner), 4)?;
+        state.serialize_field("config_topic", &self.config_topic())?;
+        state.serialize_field("platform", &self.inner.component())?;
+        state.serialize_field("prefix", &self.prefix())?;
+        state.serialize_field("inner", &self.inner)?;
+        
+        return state.end();
+        }
+
 }
 
-impl<T> State for T
-where
-    T: Component + ObjectId + NodeId + Serialize,
-{
-    fn state_topic(&self) -> String {
-        if let Some(node_id) = self.node_id() {
-            format!(
-                "{}/{}/{}/{}/state",
-                self.prefix().to_lowercase(),
-                self.component(),
-                node_id.to_lowercase(),
-                self.object_id().to_lowercase()
-            )
-        } else {
-            format!(
-                "{}/{}/{}/state",
-                self.prefix().to_lowercase(),
-                self.component(),
-                self.object_id().to_lowercase()
-            )
-        }
+
+#[cfg(test)]
+mod tests {
+    use crate::components::button::{self, Button};
+
+    use super::*;
+
+    #[test]
+    fn test_discoverable() {
+        let button = Button::new("command_topic".to_string());
+        let discoverable_button = Discoverable::new(button);
+        let serialized = serde_json::to_string(&qos).unwrap();
+        println!("{}", serialized);
     }
 }

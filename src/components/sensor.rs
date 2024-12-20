@@ -196,19 +196,19 @@ impl<'a> Sensor<'a> {
     }
 }
 
-impl<'a> crate::discoverable::ObjectId for Sensor<'a> {
+impl<'a> crate::component::ObjectId for Sensor<'a> {
     fn object_id(&self) -> &str {
         self.object_id.as_ref().unwrap()
     }
 }
 
-impl<'a> crate::discoverable::Component for Sensor<'a> {
+impl<'a> crate::component::ComponentTrait for Sensor<'a> {
     fn component(&self) -> crate::component::Component {
         crate::component::Component::Sensor
     }
 }
 
-impl<'a> crate::discoverable::NodeId for Sensor<'a> {
+impl<'a> crate::component::NodeId for Sensor<'a> {
     fn node_id(&self) -> Option<&str> {
         self.device.and_then(|device| device.node_id.as_deref())
     }

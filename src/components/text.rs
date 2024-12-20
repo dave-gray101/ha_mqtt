@@ -217,19 +217,19 @@ impl<'a> Text<'a> {
     }
 }
 
-impl<'a> crate::discoverable::ObjectId for Text<'a> {
+impl<'a> crate::component::ObjectId for Text<'a> {
     fn object_id(&self) -> &str {
         self.object_id.as_ref().unwrap()
     }
 }
 
-impl<'a> crate::discoverable::Component for Text<'a> {
+impl<'a> crate::component::ComponentTrait for Text<'a> {
     fn component(&self) -> crate::component::Component {
         crate::component::Component::Text
     }
 }
 
-impl<'a> crate::discoverable::NodeId for Text<'a> {
+impl<'a> crate::component::NodeId for Text<'a> {
     fn node_id(&self) -> Option<&str> {
         self.device.and_then(|device| device.node_id.as_deref())
     }

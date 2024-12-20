@@ -1,6 +1,5 @@
 use crate::availability::{Availability, AvailabilityMode};
 use crate::device::Device;
-use crate::discoverable::*;
 use crate::qos::Qos;
 use serde::{Deserialize, Serialize};
 
@@ -222,7 +221,7 @@ impl<'a> BinarySensor<'a> {
     }
 }
 
-impl ObjectId for BinarySensor<'_> {
+impl crate::component::ObjectId for BinarySensor<'_> {
     fn object_id(&self) -> &str {
         self.object_id.as_deref().unwrap_or_else(|| {
             self.name
@@ -232,13 +231,13 @@ impl ObjectId for BinarySensor<'_> {
     }
 }
 
-impl Component for BinarySensor<'_> {
+impl crate::component::ComponentTrait for BinarySensor<'_> {
     fn component(&self) -> crate::component::Component {
         crate::component::Component::BinarySensor
     }
 }
 
-impl NodeId for BinarySensor<'_> {
+impl crate::component::NodeId for BinarySensor<'_> {
     fn node_id(&self) -> Option<&str> {
         self.device.as_ref().and_then(|d| d.node_id.as_deref())
     }
