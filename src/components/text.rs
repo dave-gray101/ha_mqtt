@@ -3,7 +3,9 @@ use crate::device::Device;
 use crate::qos::Qos;
 use serde::Serialize;
 
-#[derive(Debug, Default, Clone, PartialEq, Serialize)]
+use serde_inner_serialize::InnerSerializable;
+
+#[derive(Debug, Default, Clone, PartialEq, Serialize, InnerSerializable)]
 pub struct Text<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub availability: Option<Availability>,
@@ -217,19 +219,25 @@ impl<'a> Text<'a> {
     }
 }
 
-impl<'a> crate::discoverable::ObjectId for Text<'a> {
-    fn object_id(&self) -> &str {
-        self.object_id.as_ref().unwrap()
+impl<'a> crate::component::ObjectId for Text<'a> {
+    fn object_id(&self) -> Option<&str> {
+        self.object_id.as_deref()
     }
 }
 
-impl<'a> crate::discoverable::Component for Text<'a> {
+impl<'a> crate::component::Name for Text<'a> {
+    fn name(&self) -> Option<&str> {
+        self.name.as_deref()
+    }
+}
+
+impl<'a> crate::component::ComponentTrait for Text<'a> {
     fn component(&self) -> crate::component::Component {
         crate::component::Component::Text
     }
 }
 
-impl<'a> crate::discoverable::NodeId for Text<'a> {
+impl<'a> crate::component::NodeId for Text<'a> {
     fn node_id(&self) -> Option<&str> {
         self.device.and_then(|device| device.node_id.as_deref())
     }

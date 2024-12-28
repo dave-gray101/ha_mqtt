@@ -1,8 +1,9 @@
 use crate::availability::{Availability, AvailabilityMode};
 use crate::device::Device;
 use serde::Serialize;
+use serde_inner_serialize::InnerSerializable;
 
-#[derive(Debug, Default, Clone, PartialEq, Serialize)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize, InnerSerializable)]
 pub struct Event<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub availability: Option<Availability>,
@@ -173,19 +174,25 @@ impl<'a> Event<'a> {
     }
 }
 
-impl<'a> crate::discoverable::ObjectId for Event<'a> {
-    fn object_id(&self) -> &str {
-        self.object_id.as_ref().unwrap()
+impl<'a> crate::component::ObjectId for Event<'a> {
+    fn object_id(&self) -> Option<&str> {
+        self.object_id.as_deref()
     }
 }
 
-impl<'a> crate::discoverable::Component for Event<'a> {
+impl<'a> crate::component::Name for Event<'a> {
+    fn name(&self) -> Option<&str> {
+        self.name.as_deref()
+    }
+}
+
+impl<'a> crate::component::ComponentTrait for Event<'a> {
     fn component(&self) -> crate::component::Component {
         crate::component::Component::Event
     }
 }
 
-impl<'a> crate::discoverable::NodeId for Event<'a> {
+impl<'a> crate::component::NodeId for Event<'a> {
     fn node_id(&self) -> Option<&str> {
         self.device.and_then(|device| device.node_id.as_deref())
     }

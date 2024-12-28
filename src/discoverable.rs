@@ -1,77 +1,89 @@
-use serde::Serialize;
+use serde::{ser::SerializeStruct, Serialize};
+use crate::component::{ComponentTrait, ObjectId, NodeId};
+use serde_inner_serialize::{InnerSerializableTrait, OuterSerializable, OuterSerializableTrait};
 
-#[allow(clippy::declare_interior_mutable_const)]
-const PREFIX: std::cell::OnceCell<&str> = std::cell::OnceCell::new();
-
-pub trait ObjectId {
-    fn object_id(&self) -> &str;
-}
-
-pub trait Component {
-    fn component(&self) -> crate::component::Component;
-}
-
-pub trait NodeId {
-    fn node_id(&self) -> Option<&str>;
-}
-
-pub trait Discoverable: serde::Serialize {
-    fn prefix(&self) -> &'static str {
-        #[allow(clippy::borrow_interior_mutable_const)]
-        PREFIX.get_or_init(|| option_env!("HA_MQTT_PREFIX").unwrap_or("homeassistant"))
-    }
-
+pub trait DiscoverableEntity : ComponentTrait + ObjectId + NodeId {
     fn config_topic(&self) -> String;
 }
 
-pub trait State {
-    fn state_topic(&self) -> String;
-}
-
-impl<T> Discoverable for T
-where
-    T: Component + ObjectId + NodeId + Serialize,
-{
+impl <T> DiscoverableEntity for T where T: ComponentTrait + ObjectId + NodeId {
     fn config_topic(&self) -> String {
+        let oid = self.object_id().expect(crate::component::OBJECT_ID_OR_NAME_NOT_SET).to_lowercase();
         if let Some(node_id) = self.node_id() {
             format!(
                 "{}/{}/{}/{}/config",
-                self.prefix().to_lowercase(),
+                self.component().prefix().to_lowercase(),
                 self.component(),
                 node_id.to_lowercase(),
-                self.object_id().to_lowercase()
+                oid
             )
         } else {
             format!(
                 "{}/{}/{}/config",
-                self.prefix().to_lowercase(),
+                self.component().prefix().to_lowercase(),
                 self.component(),
-                self.object_id().to_lowercase()
+                oid
             )
         }
     }
 }
 
-impl<T> State for T
-where
-    T: Component + ObjectId + NodeId + Serialize,
+
+#[derive(OuterSerializable)]
+pub struct Discoverable<'a, T: DiscoverableEntity + InnerSerializableTrait> {
+    inner: &'a T,
+}
+
+impl<'a, T> Discoverable<'a, T> where T: ComponentTrait + ObjectId + NodeId + Serialize + InnerSerializableTrait
 {
-    fn state_topic(&self) -> String {
-        if let Some(node_id) = self.node_id() {
-            format!(
-                "{}/{}/{}/{}/state",
-                self.prefix().to_lowercase(),
-                self.component(),
-                node_id.to_lowercase(),
-                self.object_id().to_lowercase()
-            )
-        } else {
-            format!(
-                "{}/{}/{}/state",
-                self.prefix().to_lowercase(),
-                self.component(),
-                self.object_id().to_lowercase()
-            )
-        }
+    pub fn new(inner: &'a T) -> Self {
+        Self { inner }
     }
 }
+
+impl <'a, T> Serialize for Discoverable<'a, T> where T: ComponentTrait + ObjectId + NodeId + Serialize + InnerSerializableTrait {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: serde::Serializer {
+        
+        if self.inner.object_id().is_none() {
+            return Err(serde::ser::Error::custom(crate::component::OBJECT_ID_OR_NAME_NOT_SET));
+        }
+
+        let fields = T::count_fields();
+        let mut state = serializer.serialize_struct(&self.get_full_type_name(), fields+3)?;
+        state.serialize_field("config_topic", &self.inner.config_topic())?;
+        state.serialize_field("platform", &self.inner.component())?;
+        state.serialize_field("prefix", &self.inner.component().prefix())?;
+        self.inner.inner_serialize(&mut state).unwrap();
+        state.end()
+    }
+    
+}
+
+
+#[cfg(test)]
+mod tests {
+    use crate::{component::DefaultStateTopic, components::{button::Button, select::Select}};
+
+    use super::*;
+
+    #[test]
+    fn test_discoverable() {
+        let button = Button::new("command_topic".to_string())
+            .with_object_id(uuid::Uuid::new_v4().to_string());
+        let mut select = Select::new("command_topic2".to_string(), vec!["option1".to_string(), "option2".to_string()])
+            .with_object_id(uuid::Uuid::new_v4().to_string());
+
+        let state_topic = select.default_state_topic();
+        select = select.with_state_topic(state_topic);
+
+        let discoverable_button = Discoverable::new(&button);
+        let discoverable_select = Discoverable::new(&select);
+        let serialized_button = serde_json::to_string(&discoverable_button).unwrap();
+        println!("\n\nBUTTON:\n{}\n", serialized_button);
+        let serialized_select = serde_json::to_string(&discoverable_select).unwrap();
+        println!("\n\nSELECT:\n{}\n", serialized_select);
+        
+    }
+}
+
+

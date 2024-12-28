@@ -2,8 +2,9 @@ use crate::availability::{Availability, AvailabilityMode};
 use crate::device::Device;
 use crate::qos::Qos;
 use serde::Serialize;
+use serde_inner_serialize::InnerSerializable;
 
-#[derive(Debug, Default, Clone, PartialEq, Serialize)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize, InnerSerializable)]
 pub struct Button<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub availability: Option<Availability>,
@@ -165,6 +166,7 @@ impl<'a> Button<'a> {
     }
 }
 
+
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(untagged, rename_all = "snake_case")]
 pub enum ButtonClass {
@@ -182,19 +184,25 @@ pub enum ButtonEntityCategory {
     Diagnostic,
 }
 
-impl<'a> crate::discoverable::ObjectId for Button<'a> {
-    fn object_id(&self) -> &str {
-        self.object_id.as_ref().unwrap()
+impl<'a> crate::component::ObjectId for Button<'a> {
+    fn object_id(&self) -> Option<&str> {
+        self.object_id.as_deref()
     }
 }
 
-impl<'a> crate::discoverable::Component for Button<'a> {
+impl<'a> crate::component::Name for Button<'a> {
+    fn name(&self) -> Option<&str> {
+        self.name.as_deref()
+    }
+}
+
+impl<'a> crate::component::ComponentTrait for Button<'a> {
     fn component(&self) -> crate::component::Component {
         crate::component::Component::Button
     }
 }
 
-impl<'a> crate::discoverable::NodeId for Button<'a> {
+impl<'a> crate::component::NodeId for Button<'a> {
     fn node_id(&self) -> Option<&str> {
         self.device.and_then(|device| device.node_id.as_deref())
     }

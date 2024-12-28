@@ -1,8 +1,8 @@
 use crate::availability::{Availability, AvailabilityMode};
 use crate::device::Device;
-use crate::discoverable::*;
 use crate::qos::Qos;
 use serde::{Deserialize, Serialize};
+use serde_inner_serialize::InnerSerializable;
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(untagged, rename_all = "lowercase")]
@@ -12,7 +12,7 @@ pub enum BinarySensorState {
     Unknown,
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Serialize)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize, InnerSerializable)]
 pub struct BinarySensor<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub availability: Option<Availability>,
@@ -222,23 +222,19 @@ impl<'a> BinarySensor<'a> {
     }
 }
 
-impl ObjectId for BinarySensor<'_> {
-    fn object_id(&self) -> &str {
-        self.object_id.as_deref().unwrap_or_else(|| {
-            self.name
-                .as_deref()
-                .expect("Either name or object_id must be set")
-        })
+impl crate::component::ObjectId for BinarySensor<'_> {
+    fn object_id(&self) -> Option<&str> {
+        self.object_id.as_deref()
     }
 }
 
-impl Component for BinarySensor<'_> {
+impl crate::component::ComponentTrait for BinarySensor<'_> {
     fn component(&self) -> crate::component::Component {
         crate::component::Component::BinarySensor
     }
 }
 
-impl NodeId for BinarySensor<'_> {
+impl crate::component::NodeId for BinarySensor<'_> {
     fn node_id(&self) -> Option<&str> {
         self.device.as_ref().and_then(|d| d.node_id.as_deref())
     }
