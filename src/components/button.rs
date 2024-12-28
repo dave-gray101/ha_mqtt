@@ -2,8 +2,10 @@ use crate::availability::{Availability, AvailabilityMode};
 use crate::device::Device;
 use crate::qos::Qos;
 use serde::Serialize;
+use serde_inner_serialize::InnerSerializable;
+use serde_inner_serialize::InnerSerializableTrait;
 
-#[derive(Debug, Default, Clone, PartialEq, Serialize)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize, InnerSerializable)]
 pub struct Button<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub availability: Option<Availability>,
@@ -165,6 +167,7 @@ impl<'a> Button<'a> {
     }
 }
 
+
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(untagged, rename_all = "snake_case")]
 pub enum ButtonClass {
@@ -183,8 +186,14 @@ pub enum ButtonEntityCategory {
 }
 
 impl<'a> crate::component::ObjectId for Button<'a> {
-    fn object_id(&self) -> &str {
-        self.object_id.as_ref().unwrap()
+    fn object_id(&self) -> Option<&str> {
+        self.object_id.as_deref()
+    }
+}
+
+impl<'a> crate::component::Name for Button<'a> {
+    fn name(&self) -> Option<&str> {
+        self.name.as_deref()
     }
 }
 

@@ -1,5 +1,9 @@
 use serde::Serialize;
-#[derive(Debug, Default, Clone, PartialEq, Serialize)]
+use serde_inner_serialize::InnerSerializable;
+use serde_inner_serialize::InnerSerializableTrait;
+
+
+#[derive(Debug, Default, Clone, PartialEq, Serialize, InnerSerializable)]
 pub struct Select<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub availability: Option<crate::availability::Availability>,
@@ -189,8 +193,14 @@ impl<'a> Select<'a> {
 }
 
 impl<'a> crate::component::ObjectId for Select<'a> {
-    fn object_id(&self) -> &str {
-        self.object_id.as_ref().unwrap()
+    fn object_id(&self) -> Option<&str> {
+        self.object_id.as_deref()
+    }
+}
+
+impl<'a> crate::component::Name for Select<'a> {
+    fn name(&self) -> Option<&str> {
+        self.name.as_deref()
     }
 }
 

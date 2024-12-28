@@ -222,12 +222,8 @@ impl<'a> BinarySensor<'a> {
 }
 
 impl crate::component::ObjectId for BinarySensor<'_> {
-    fn object_id(&self) -> &str {
-        self.object_id.as_deref().unwrap_or_else(|| {
-            self.name
-                .as_deref()
-                .expect("Either name or object_id must be set")
-        })
+    fn object_id(&self) -> Option<&str> {
+        self.object_id.as_deref()
     }
 }
 

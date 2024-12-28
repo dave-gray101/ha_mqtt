@@ -174,8 +174,14 @@ impl<'a> Event<'a> {
 }
 
 impl<'a> crate::component::ObjectId for Event<'a> {
-    fn object_id(&self) -> &str {
-        self.object_id.as_ref().unwrap()
+    fn object_id(&self) -> Option<&str> {
+        self.object_id.as_deref()
+    }
+}
+
+impl<'a> crate::component::Name for Event<'a> {
+    fn name(&self) -> Option<&str> {
+        self.name.as_deref()
     }
 }
 

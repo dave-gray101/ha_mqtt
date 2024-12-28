@@ -302,8 +302,8 @@ pub enum NumberMode {
 }
 
 impl<'a> crate::component::ObjectId for Number<'a> {
-    fn object_id(&self) -> &str {
-        self.object_id.as_ref().unwrap()
+    fn object_id(&self) -> Option<&str> {
+        self.object_id.as_deref()
     }
 }
 

@@ -10,7 +10,7 @@ pub mod availability;
 pub mod component;
 pub mod device;
 pub mod discoverable;
-pub mod state;
+// pub mod state;
 pub mod qos;
 pub mod components {
     pub mod binary_sensor;
