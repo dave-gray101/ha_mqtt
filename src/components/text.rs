@@ -4,7 +4,6 @@ use crate::qos::Qos;
 use serde::Serialize;
 
 use serde_inner_serialize::InnerSerializable;
-use serde_inner_serialize::InnerSerializableTrait;
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, InnerSerializable)]
 pub struct Text<'a> {
