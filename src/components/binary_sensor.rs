@@ -2,6 +2,7 @@ use crate::availability::{Availability, AvailabilityMode};
 use crate::device::Device;
 use crate::qos::Qos;
 use serde::{Deserialize, Serialize};
+use serde_inner_serialize::InnerSerializable;
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(untagged, rename_all = "lowercase")]
@@ -11,7 +12,7 @@ pub enum BinarySensorState {
     Unknown,
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Serialize)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize, InnerSerializable)]
 pub struct BinarySensor<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub availability: Option<Availability>,

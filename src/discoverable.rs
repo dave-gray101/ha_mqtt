@@ -55,7 +55,6 @@ impl <'a, T> Serialize for Discoverable<'a, T> where T: ComponentTrait + ObjectI
         state.serialize_field("prefix", &self.inner.component().prefix())?;
         self.inner.inner_serialize(&mut state).unwrap();
         state.end()
-        // Err(serde::ser::Error::custom(format!("unable to serialize {}", std::any::type_name_of_val(&self.inner))))
     }
     
 }
